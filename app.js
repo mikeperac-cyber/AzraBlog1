@@ -549,13 +549,34 @@ function closeSearch() {
   document.body.classList.remove("is-locked");
 }
 
+function searchResultItemMarkup(article) {
+  const text = articleText(article);
+  return `<li><button data-action="open-search-result" data-article="${article.id}"><span>${text.title}</span><small>${article.readTime} min</small></button></li>`;
+}
+
 function updateSearchResults(query) {
   const results = document.querySelector("[data-search-results]");
   if (!results) return;
+
   const t = getText();
   const normalized = query.trim().toLowerCase();
-  const matches = normalized ? articles.filter((article) => `${articleText(article).title} ${articleText(article).excerpt}`.toLowerCase().includes(normalized)) : articles.slice(0, 5);
-  results.innerHTML = matches.length ? matches.map((article) => `<li><button data-action="open-search-result" data-article="${article.id}"><span>${articleText(article).title}</span><small>${article.readTime} min</small></button></li>`).join("") : `<li>${t.searchEmpty}</li>`;
+
+  let matches;
+  if (normalized) {
+    matches = articles.filter((article) => {
+      const text = articleText(article);
+      const searchContent = `${text.title} ${text.excerpt}`.toLowerCase();
+      return searchContent.includes(normalized);
+    });
+  } else {
+    matches = articles.slice(0, 5);
+  }
+
+  if (matches.length > 0) {
+    results.innerHTML = matches.map(searchResultItemMarkup).join("");
+  } else {
+    results.innerHTML = `<li>${t.searchEmpty}</li>`;
+  }
 }
 
 document.addEventListener("click", (event) => {
