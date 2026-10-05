@@ -369,7 +369,6 @@ function imageMarkup(article, eager = false) {
     if (article.imageClass === "is-botanical" || article.image === "assets/botanical-field.png") {
       return `<img src="${article.image}" alt="" loading="${eager ? "eager" : "lazy"}" />`;
     }
-    if (article.id === "burnout" || article.id === "body") return abstractArt(article);
     return abstractArt(article);
   }
   return `<img src="${article.image}" alt="${alt}" loading="${eager ? "eager" : "lazy"}" />`;
