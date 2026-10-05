@@ -391,6 +391,23 @@ function cardMarkup(article) {
   </article>`;
 }
 
+function modalMarkup(article) {
+  const t = getText();
+  const copy = articleText(article);
+  const source = article.source ? articleSource[article.source] : null;
+  const category = t.categories[article.category] || t.categories.all;
+  const bodyParagraphs = copy.body.map((paragraph) => `<p>${paragraph}</p>`).join("");
+  const sourceMarkup = source
+    ? `<div class="modal-source">${t.sourceLabel} <a href="${source.url}" target="_blank" rel="noreferrer">${source[language]}</a></div>`
+    : "";
+
+  return `<div class="modal-category">${category}</div>
+    <h2 class="modal-title" id="modal-title">${copy.title}</h2>
+    <div class="article-meta"><span>${article.readTime} min read</span><span class="meta-divider">|</span><span>EN / TR</span></div>
+    <div class="modal-body">${bodyParagraphs}</div>
+    ${sourceMarkup}`;
+}
+
 function render() {
   const t = getText();
   const featured = articles[0];
@@ -509,12 +526,8 @@ function openArticle(id) {
   const article = articles.find((item) => item.id === id);
   if (!article) return;
   selectedArticleId = id;
-  const t = getText();
-  const copy = articleText(article);
-  const source = article.source ? articleSource[article.source] : null;
-  const category = t.categories[article.category] || t.categories.all;
   const modal = document.querySelector("[data-modal-backdrop]");
-  modal.querySelector(".modal-content").innerHTML = `<div class="modal-category">${category}</div><h2 class="modal-title" id="modal-title">${copy.title}</h2><div class="article-meta"><span>${article.readTime} min read</span><span class="meta-divider">|</span><span>EN / TR</span></div><div class="modal-body">${copy.body.map((paragraph) => `<p>${paragraph}</p>`).join("")}</div>${source ? `<div class="modal-source">${t.sourceLabel} <a href="${source.url}" target="_blank" rel="noreferrer">${source[language]}</a></div>` : ""}`;
+  modal.querySelector(".modal-content").innerHTML = modalMarkup(article);
   modal.classList.add("is-open");
   modal.setAttribute("aria-hidden", "false");
   document.body.classList.add("is-locked");
