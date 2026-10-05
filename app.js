@@ -341,7 +341,7 @@ const ui = {
   }
 };
 
-let language = localStorage.getItem("nar-language") || "en";
+let language = typeof localStorage !== "undefined" ? (localStorage.getItem("nar-language") || "en") : "en";
 let activeCategory = "all";
 let selectedArticleId = null;
 
@@ -392,6 +392,7 @@ function cardMarkup(article) {
 }
 
 function render() {
+  if (typeof document === "undefined") return;
   const t = getText();
   const featured = articles[0];
   const featuredCopy = articleText(featured);
@@ -494,6 +495,7 @@ function render() {
 }
 
 function applyFilter() {
+  if (typeof document === "undefined") return;
   const cards = [...document.querySelectorAll(".journal-card")];
   let visible = 0;
   cards.forEach((card) => {
@@ -506,6 +508,7 @@ function applyFilter() {
 }
 
 function openArticle(id) {
+  if (typeof document === "undefined") return;
   const article = articles.find((item) => item.id === id);
   if (!article) return;
   selectedArticleId = id;
@@ -522,6 +525,7 @@ function openArticle(id) {
 }
 
 function closeArticle() {
+  if (typeof document === "undefined") return;
   const modal = document.querySelector("[data-modal-backdrop]");
   if (!modal) return;
   modal.classList.remove("is-open");
@@ -531,6 +535,7 @@ function closeArticle() {
 }
 
 function openSearch() {
+  if (typeof document === "undefined") return;
   const panel = document.querySelector("[data-search-panel]");
   panel.classList.add("is-open");
   panel.setAttribute("aria-hidden", "false");
@@ -542,6 +547,7 @@ function openSearch() {
 }
 
 function closeSearch() {
+  if (typeof document === "undefined") return;
   const panel = document.querySelector("[data-search-panel]");
   if (!panel) return;
   panel.classList.remove("is-open");
@@ -550,6 +556,7 @@ function closeSearch() {
 }
 
 function updateSearchResults(query) {
+  if (typeof document === "undefined") return;
   const results = document.querySelector("[data-search-results]");
   if (!results) return;
   const t = getText();
@@ -558,43 +565,52 @@ function updateSearchResults(query) {
   results.innerHTML = matches.length ? matches.map((article) => `<li><button data-action="open-search-result" data-article="${article.id}"><span>${articleText(article).title}</span><small>${article.readTime} min</small></button></li>`).join("") : `<li>${t.searchEmpty}</li>`;
 }
 
-document.addEventListener("click", (event) => {
-  const actionElement = event.target.closest("[data-action]");
-  if (!actionElement) {
-    if (event.target.matches("[data-modal-backdrop]")) closeArticle();
-    if (event.target.matches("[data-search-panel]")) closeSearch();
-    return;
-  }
-  const action = actionElement.dataset.action;
-  if (action === "toggle-language") {
-    language = language === "en" ? "tr" : "en";
-    localStorage.setItem("nar-language", language);
-    render();
-    if (selectedArticleId) openArticle(selectedArticleId);
-  }
-  if (action === "filter") {
-    activeCategory = actionElement.dataset.category;
-    document.querySelectorAll(".filter-button").forEach((button) => button.classList.toggle("is-active", button.dataset.category === activeCategory));
-    applyFilter();
-  }
-  if (action === "open-article") openArticle(actionElement.dataset.article);
-  if (action === "close-modal") closeArticle();
-  if (action === "open-search") openSearch();
-  if (action === "close-search") closeSearch();
-  if (action === "open-search-result") { closeSearch(); openArticle(actionElement.dataset.article); }
-  if (action === "toggle-menu") document.querySelector("[data-mobile-nav]").classList.toggle("is-open");
-});
+if (typeof document !== "undefined") {
+  document.addEventListener("click", (event) => {
+    const actionElement = event.target.closest("[data-action]");
+    if (!actionElement) {
+      if (event.target.matches("[data-modal-backdrop]")) closeArticle();
+      if (event.target.matches("[data-search-panel]")) closeSearch();
+      return;
+    }
+    const action = actionElement.dataset.action;
+    if (action === "toggle-language") {
+      language = language === "en" ? "tr" : "en";
+      localStorage.setItem("nar-language", language);
+      render();
+      if (selectedArticleId) openArticle(selectedArticleId);
+    }
+    if (action === "filter") {
+      activeCategory = actionElement.dataset.category;
+      document.querySelectorAll(".filter-button").forEach((button) => button.classList.toggle("is-active", button.dataset.category === activeCategory));
+      applyFilter();
+    }
+    if (action === "open-article") openArticle(actionElement.dataset.article);
+    if (action === "close-modal") closeArticle();
+    if (action === "open-search") openSearch();
+    if (action === "close-search") closeSearch();
+    if (action === "open-search-result") { closeSearch(); openArticle(actionElement.dataset.article); }
+    if (action === "toggle-menu") document.querySelector("[data-mobile-nav]").classList.toggle("is-open");
+  });
 
-document.addEventListener("input", (event) => {
-  if (event.target.matches(".search-input")) updateSearchResults(event.target.value);
-});
+  document.addEventListener("input", (event) => {
+    if (event.target.matches(".search-input")) updateSearchResults(event.target.value);
+  });
 
-document.addEventListener("keydown", (event) => {
-  if (event.key !== "Escape") return;
-  const modal = document.querySelector("[data-modal-backdrop]");
-  const panel = document.querySelector("[data-search-panel]");
-  if (modal?.classList.contains("is-open")) closeArticle();
-  if (panel?.classList.contains("is-open")) closeSearch();
-});
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    const modal = document.querySelector("[data-modal-backdrop]");
+    const panel = document.querySelector("[data-search-panel]");
+    if (modal?.classList.contains("is-open")) closeArticle();
+    if (panel?.classList.contains("is-open")) closeSearch();
+  });
 
-render();
+  render();
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    navMarkup,
+    ui
+  };
+}
