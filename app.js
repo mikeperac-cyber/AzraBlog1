@@ -341,7 +341,8 @@ const ui = {
   }
 };
 
-let language = typeof localStorage !== "undefined" ? (localStorage.getItem("nar-language") || "en") : "en";
+const savedLanguage = typeof localStorage !== "undefined" ? localStorage.getItem("nar-language") : null;
+let language = (savedLanguage === "en" || savedLanguage === "tr") ? savedLanguage : "en";
 let activeCategory = "all";
 let selectedArticleId = null;
 
@@ -644,6 +645,8 @@ if (typeof document !== "undefined") {
 if (typeof module !== "undefined" && module.exports) {
   module.exports = {
     navMarkup,
-    ui
+    ui,
+    abstractArt,
+    getLanguage: () => language
   };
 }
