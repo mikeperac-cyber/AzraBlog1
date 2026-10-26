@@ -512,7 +512,7 @@ function render() {
 
 function applyFilter() {
   if (typeof document === "undefined") return;
-  const cards = [...document.querySelectorAll(".journal-card")];
+  const cards = document.querySelectorAll(".journal-card");
   let visible = 0;
   cards.forEach((card) => {
     const match = activeCategory === "all" || card.dataset.category === activeCategory;
