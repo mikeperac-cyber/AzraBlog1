@@ -567,9 +567,19 @@ function closeSearch() {
   document.body.classList.remove("is-locked");
 }
 
+function escapeHtml(str) {
+  if (str === null || str === undefined) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function searchResultItemMarkup(article) {
   const text = articleText(article);
-  return `<li><button data-action="open-search-result" data-article="${article.id}"><span>${text.title}</span><small>${article.readTime} min</small></button></li>`;
+  return `<li><button data-action="open-search-result" data-article="${escapeHtml(article.id)}"><span>${escapeHtml(text.title)}</span><small>${escapeHtml(article.readTime)} min</small></button></li>`;
 }
 
 function updateSearchResults(query) {
@@ -594,7 +604,7 @@ function updateSearchResults(query) {
   if (matches.length > 0) {
     results.innerHTML = matches.map(searchResultItemMarkup).join("");
   } else {
-    results.innerHTML = `<li>${t.searchEmpty}</li>`;
+    results.innerHTML = `<li>${escapeHtml(t.searchEmpty)}</li>`;
   }
 }
 
@@ -644,6 +654,9 @@ if (typeof document !== "undefined") {
 if (typeof module !== "undefined" && module.exports) {
   module.exports = {
     navMarkup,
-    ui
+    ui,
+    escapeHtml,
+    searchResultItemMarkup,
+    updateSearchResults
   };
 }

@@ -42,3 +42,28 @@ describe("navMarkup", () => {
     assert.strictEqual(result, expected);
   });
 });
+
+describe("escapeHtml and searchResultItemMarkup security tests", () => {
+  const { escapeHtml, searchResultItemMarkup } = require("./app.js");
+
+  test("escapeHtml escapes HTML special characters properly", () => {
+    assert.strictEqual(escapeHtml('<script>alert("XSS")</script>'), '&lt;script&gt;alert(&quot;XSS&quot;)&lt;/script&gt;');
+    assert.strictEqual(escapeHtml("Foo & Bar 'Baz'"), 'Foo &amp; Bar &#39;Baz&#39;');
+    assert.strictEqual(escapeHtml(null), '');
+    assert.strictEqual(escapeHtml(undefined), '');
+  });
+
+  test("searchResultItemMarkup escapes untrusted article content", () => {
+    const maliciousArticle = {
+      id: 'art-1"><script>alert(1)</script>',
+      readTime: 5,
+      en: { title: '<img src=x onerror=alert(1)>' },
+      tr: { title: 'Test' }
+    };
+    const markup = searchResultItemMarkup(maliciousArticle);
+    assert.ok(!markup.includes('<script>'));
+    assert.ok(!markup.includes('<img'));
+    assert.ok(markup.includes('&lt;script&gt;alert(1)&lt;/script&gt;'));
+    assert.ok(markup.includes('&lt;img src=x onerror=alert(1)&gt;'));
+  });
+});
