@@ -67,3 +67,88 @@ describe("escapeHtml and searchResultItemMarkup security tests", () => {
     assert.ok(markup.includes('&lt;img src=x onerror=alert(1)&gt;'));
   });
 });
+
+describe("precomputed article.search and cardMarkup data-search", () => {
+  const fs = require("node:fs");
+  const path = require("node:path");
+  const vm = require("node:vm");
+
+  function loadContext(lang = "en") {
+    const code = fs.readFileSync(path.join(__dirname, "app.js"), "utf8");
+    const mockElement = {
+      innerHTML: "",
+      classList: { add: () => {}, remove: () => {}, toggle: () => {} },
+      setAttribute: () => {},
+      querySelector: () => mockElement,
+      querySelectorAll: () => []
+    };
+    const sandbox = {
+      console,
+      setTimeout,
+      clearTimeout,
+      window: {},
+      document: {
+        documentElement: {},
+        querySelector: () => mockElement,
+        querySelectorAll: () => [],
+        addEventListener: () => {}
+      },
+      localStorage: {
+        getItem: () => lang,
+        setItem: () => {}
+      }
+    };
+    sandbox.global = sandbox;
+    const context = vm.createContext(sandbox);
+    vm.runInContext(code + "; globalThis.__ARTICLES = articles; globalThis.__CARD_MARKUP = cardMarkup;", context);
+    return context;
+  }
+
+  test("articles have precomputed search strings for en and tr", () => {
+    const context = loadContext("en");
+    const articles = context.__ARTICLES;
+    assert.strictEqual(articles.length, 10);
+    articles.forEach((art) => {
+      assert.ok(art.search, `article ${art.id} should have search object`);
+      assert.strictEqual(art.search.en, `${art.en.title} ${art.en.excerpt}`.toLowerCase());
+      assert.strictEqual(art.search.tr, `${art.tr.title} ${art.tr.excerpt}`.toLowerCase());
+    });
+  });
+
+  test("cardMarkup generates data-search matching precomputed search string in English", () => {
+    const context = loadContext("en");
+    const articles = context.__ARTICLES;
+    const cardMarkup = context.__CARD_MARKUP;
+    articles.forEach((art) => {
+      const markup = cardMarkup(art);
+      assert.ok(markup.includes(`data-search="${art.search.en}"`));
+    });
+  });
+
+  test("cardMarkup generates data-search matching precomputed search string in Turkish", () => {
+    const context = loadContext("tr");
+    const articles = context.__ARTICLES;
+    const cardMarkup = context.__CARD_MARKUP;
+    articles.forEach((art) => {
+      const markup = cardMarkup(art);
+      assert.ok(markup.includes(`data-search="${art.search.tr}"`));
+    });
+  });
+
+  test("cardMarkup falls back safely if article.search is absent", () => {
+    const context = loadContext("en");
+    const cardMarkup = context.__CARD_MARKUP;
+    const customArticle = {
+      id: "custom",
+      number: "99",
+      category: "daily",
+      readTime: 3,
+      image: "assets/morning-table.png",
+      imageClass: "",
+      en: { title: "Custom Title", excerpt: "Custom Excerpt" },
+      tr: { title: "Ozel Baslik", excerpt: "Ozel Ozet" }
+    };
+    const markup = cardMarkup(customArticle);
+    assert.ok(markup.includes('data-search="custom title custom excerpt"'));
+  });
+});

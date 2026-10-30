@@ -345,6 +345,13 @@ let language = typeof localStorage !== "undefined" ? (localStorage.getItem("nar-
 let activeCategory = "all";
 let selectedArticleId = null;
 
+articles.forEach((article) => {
+  article.search = {
+    en: `${article.en.title} ${article.en.excerpt}`.toLowerCase(),
+    tr: `${article.tr.title} ${article.tr.excerpt}`.toLowerCase()
+  };
+});
+
 const getText = () => ui[language];
 const articleText = (article) => article[language];
 
@@ -378,7 +385,7 @@ function cardMarkup(article) {
   const t = getText();
   const copy = articleText(article);
   const source = article.source ? articleSource[article.source] : null;
-  return `<article class="journal-card" data-category="${article.category}" data-search="${`${copy.title} ${copy.excerpt}`.toLowerCase()}">
+  return `<article class="journal-card" data-category="${article.category}" data-search="${article.search ? article.search[language] : `${copy.title} ${copy.excerpt}`.toLowerCase()}">
     <div class="journal-number">${article.number}</div>
     <div class="journal-image ${article.imageClass}">${imageMarkup(article)}</div>
     <div class="journal-card-content">
@@ -594,7 +601,7 @@ function updateSearchResults(query) {
   if (normalized) {
     matches = articles.filter((article) => {
       const text = articleText(article);
-      const searchContent = `${text.title} ${text.excerpt}`.toLowerCase();
+      const searchContent = article.search ? article.search[language] : `${text.title} ${text.excerpt}`.toLowerCase();
       return searchContent.includes(normalized);
     });
   } else {
