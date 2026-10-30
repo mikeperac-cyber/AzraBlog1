@@ -68,6 +68,79 @@ describe("escapeHtml and searchResultItemMarkup security tests", () => {
   });
 });
 
+describe("imageMarkup tests", () => {
+  const { imageMarkup } = require("./app.js");
+
+  test("renders botanical image with empty alt attribute and default lazy loading", () => {
+    const article = {
+      id: "meals",
+      image: "assets/botanical-field.png",
+      imageClass: "is-botanical",
+      en: { title: "Small meals, steadier days" },
+      tr: { title: "Küçük öğünler, daha dengeli günler" }
+    };
+    const markup = imageMarkup(article);
+    assert.strictEqual(markup, '<img src="assets/botanical-field.png" alt="" loading="lazy" />');
+  });
+
+  test("renders botanical image with eager loading when eager is true", () => {
+    const article = {
+      id: "herbs",
+      image: "assets/botanical-field.png",
+      imageClass: "is-botanical",
+      en: { title: "Herbal remedies" },
+      tr: { title: "Bitkisel çözümler" }
+    };
+    const markup = imageMarkup(article, true);
+    assert.strictEqual(markup, '<img src="assets/botanical-field.png" alt="" loading="eager" />');
+  });
+
+  test("renders abstract art when imageClass is in special classes but image is not botanical", () => {
+    const colorClasses = [
+      { class: "is-color-sand", id: "burnout", expectedColor: "sand" },
+      { class: "is-color-coral", id: "body", expectedColor: "coral" },
+      { class: "is-color-blue", id: "chronic", expectedColor: "blue" },
+      { class: "is-color-green", id: "movement", expectedColor: "green" }
+    ];
+
+    for (const { class: imageClass, id, expectedColor } of colorClasses) {
+      const article = {
+        id,
+        image: "assets/hero-coast.png",
+        imageClass,
+        en: { title: "Test Article" },
+        tr: { title: "Test Makale" }
+      };
+      const markup = imageMarkup(article);
+      assert.strictEqual(markup, `<div class="abstract-art ${expectedColor}" aria-hidden="true"></div>`);
+    }
+  });
+
+  test("renders img tag with article title alt text for other imageClass", () => {
+    const article = {
+      id: "morning",
+      image: "assets/morning-table.png",
+      imageClass: "",
+      en: { title: "The quiet architecture of a good morning" },
+      tr: { title: "İyi bir sabahın sessiz mimarisi" }
+    };
+    const markup = imageMarkup(article, false);
+    assert.strictEqual(markup, '<img src="assets/morning-table.png" alt="The quiet architecture of a good morning" loading="lazy" />');
+  });
+
+  test("renders img tag with eager loading and article title alt text", () => {
+    const article = {
+      id: "morning",
+      image: "assets/morning-table.png",
+      imageClass: "",
+      en: { title: "The quiet architecture of a good morning" },
+      tr: { title: "İyi bir sabahın sessiz mimarisi" }
+    };
+    const markup = imageMarkup(article, true);
+    assert.strictEqual(markup, '<img src="assets/morning-table.png" alt="The quiet architecture of a good morning" loading="eager" />');
+  });
+});
+
 describe("precomputed article.search and cardMarkup data-search", () => {
   const fs = require("node:fs");
   const path = require("node:path");
