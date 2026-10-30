@@ -358,9 +358,18 @@ function languageMarkup() {
   </button>`;
 }
 
+const abstractArtMap = {
+  headache: "blue",
+  meals: "green",
+  burnout: "sand",
+  movement: "green",
+  chronic: "blue",
+  body: "coral",
+  symptoms: "sand"
+};
+
 function abstractArt(article) {
-  const map = { headache: "blue", meals: "green", burnout: "sand", movement: "green", chronic: "blue", body: "coral", symptoms: "sand" };
-  return `<div class="abstract-art ${map[article.id] || "blue"}" aria-hidden="true"></div>`;
+  return `<div class="abstract-art ${abstractArtMap[article.id] || "blue"}" aria-hidden="true"></div>`;
 }
 
 function imageMarkup(article, eager = false) {
