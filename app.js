@@ -365,7 +365,7 @@ function abstractArt(article) {
 
 function imageMarkup(article, eager = false) {
   const alt = articleText(article).title;
-  if (article.imageClass === "is-botanical" || article.imageClass === "is-color-sand" || article.imageClass === "is-color-coral" || article.imageClass === "is-color-blue" || article.imageClass === "is-color-green") {
+  if (["is-botanical", "is-color-sand", "is-color-coral", "is-color-blue", "is-color-green"].includes(article.imageClass)) {
     if (article.imageClass === "is-botanical" || article.image === "assets/botanical-field.png") {
       return `<img src="${article.image}" alt="" loading="${eager ? "eager" : "lazy"}" />`;
     }
@@ -654,6 +654,8 @@ if (typeof document !== "undefined") {
 if (typeof module !== "undefined" && module.exports) {
   module.exports = {
     navMarkup,
+    imageMarkup,
+    abstractArt,
     ui,
     escapeHtml,
     searchResultItemMarkup,
